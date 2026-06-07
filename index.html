@@ -8,18 +8,25 @@
 <body>
   <script>
     let device = '';
-    let w = screen.width;
-    let h = screen.height;
-    let dpr = window.devicePixelRatio || 1;
-    if (/iPhone/.test(navigator.userAgent) || (/Mac/.test(navigator.userAgent) && 'ontouchend' in document)) {
-      const models = {
-        '320x568x2':'iPhone SE','375x667x2':'iPhone 6/7/8/SE2','414x736x3':'iPhone 6+/7+/8+',
-        '375x812x3':'iPhone X/XS/11 Pro/12 mini/13 mini','414x896x2':'iPhone XR/11','414x896x3':'iPhone XS Max/11 Pro Max',
-        '390x844x3':'iPhone 12/13/14','428x926x3':'iPhone 12 Pro Max/13 Pro Max/14 Plus',
-        '393x852x3':'iPhone 14 Pro/15/15 Pro/16','430x932x3':'iPhone 14 Pro Max/15 Pro Max/16 Pro Max',
-        '360x780x3':'iPhone 16e'
+    let ua = navigator.userAgent;
+    if (/iPhone/.test(ua) || (/Mac/.test(ua) && 'ontouchend' in document)) {
+      let w = screen.width, h = screen.height, dpr = window.devicePixelRatio || 1;
+      let ios = (ua.match(/iPhone OS (\d+)_/) || [])[1] || 0;
+      let key = w+'x'+h+'x'+dpr;
+      let map = {
+        '320x568x2': 'iPhone SE',
+        '375x667x2': ios >= 14 ? 'iPhone SE 2/3' : 'iPhone 6/7/8',
+        '414x736x3': 'iPhone 6 Plus/7 Plus/8 Plus',
+        '375x812x3': ios >= 17 ? 'iPhone 14' : ios >= 15 ? 'iPhone 13 mini' : ios >= 14 ? 'iPhone 12 mini' : ios >= 13 ? 'iPhone 11 Pro' : ios >= 12 ? 'iPhone XS' : 'iPhone X',
+        '414x896x2': ios >= 13 ? 'iPhone 11' : 'iPhone XR',
+        '414x896x3': ios >= 13 ? 'iPhone 11 Pro Max' : 'iPhone XS Max',
+        '390x844x3': ios >= 17 ? 'iPhone 14' : ios >= 15 ? 'iPhone 13' : ios >= 14 ? 'iPhone 12' : 'iPhone 12',
+        '428x926x3': ios >= 16 ? 'iPhone 14 Plus' : ios >= 15 ? 'iPhone 13 Pro Max' : 'iPhone 12 Pro Max',
+        '393x852x3': ios >= 18 ? 'iPhone 16' : ios >= 17 ? 'iPhone 15' : 'iPhone 14 Pro',
+        '430x932x3': ios >= 18 ? 'iPhone 16 Pro Max' : 'iPhone 15 Pro Max',
+        '360x780x3': 'iPhone 16e'
       };
-      device = models[w+'x'+h+'x'+dpr] || '';
+      device = map[key] || '';
     }
     let url = 'https://wer1x.onrender.com';
     if (device) url += '?device=' + encodeURIComponent(device);
