@@ -120,13 +120,13 @@ module.exports = async (req, res) => {
 
     const now = new Date();
     const fields = [
-      { name: ':round_pushpin: Konum', value: flag + ' ' + konum + (mapsLink ? '\n[Haritada göster](' + mapsLink + ')' : ''), inline: false },
+      { name: ':round_pushpin: Konum', value: flag + ' ' + konum + (mapsLink ? '\n[Haritada göster](' + mapsLink + ')' : ''), inline: true },
       { name: ':id: IP', value: ip, inline: true },
       { name: ':mobile_phone: Cihaz', value: device, inline: true },
       { name: ':desktop: İşletim Sistemi', value: os, inline: true },
       { name: ':globe_with_meridians: Tarayıcı', value: browser, inline: true },
       { name: ':satellite: ISS', value: geo.isp || geo.org || 'Bilinmiyor', inline: true },
-      { name: ':link: Yönlendiren', value: source, inline: false },
+      { name: ':link: Yönlendiren', value: source, inline: true },
       { name: ':alarm_clock: Tarih', value: fmtDate(now), inline: true }
     ];
 
