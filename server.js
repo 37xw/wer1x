@@ -69,7 +69,7 @@ function parseUA(ua) {
     for (const [id, name] of Object.entries(iphones)) {
       if (ua.includes(id)) { found = name; break; }
     }
-    device = found || 'iPhone';
+    device = found || ua.match(/iPhone\d+,\d+/)?.[0] || 'iPhone';
   } else if (/iPad/i.test(ua)) {
     os = 'iOS';
     const ipads = {
@@ -94,7 +94,7 @@ function parseUA(ua) {
     };
     let found = '';
     for (const [id, name] of Object.entries(ipads)) { if (ua.includes(id)) { found = name; break; } }
-    device = found || 'iPad';
+    device = found || ua.match(/iPad\d+,\d+/)?.[0] || 'iPad';
   } else if (/Android/i.test(ua)) {
     let m = ua.match(/\(([^;]+);\s*([^;)]+)/);
     device = m ? m[2].trim() : (/Mobile/i.test(ua) ? 'Android Telefon' : 'Android Tablet');
