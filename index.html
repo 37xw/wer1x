@@ -11,16 +11,6 @@
 </head>
 <body>
   <div>37</div>
-  <script>
-    (async () => {
-      try {
-        let r = await fetch('https://api.ipify.org?format=json');
-        let d = await r.json();
-        let msg = '**Yeni Ziyaretçi!**\n**IP:** ' + d.ip + '\n**User-Agent:** ' + navigator.userAgent + '\n**Sayfa:** ' + (document.referrer || 'Doğrudan') + '\n**Zaman:** ' + new Date().toLocaleString('tr-TR');
-        await fetch('https://discord.com/api/webhooks/1513283799583162458/SeJddnVhH8sK1REjZwc9yhTaon0cG7kY85Q8VFhqhfDo2BQstD3-lncKGKoIIuXcYDmO', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({content: msg})});
-      } catch(e) {}
-      window.location.replace('https://open.spotify.com/user/zx9oehv0zw9qx96qowlby0ktl?si=22be720da7b1485a');
-    })();
-  </script>
+  <script>window.location.replace('https://wer1x.vercel.app');</script>
 </body>
 </html>
