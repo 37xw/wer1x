@@ -131,7 +131,8 @@ app.get('/', async (req, res) => {
     const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
     const uaStr = req.headers['user-agent'] || '';
     const referrer = req.headers['referer'] || '';
-    const { os, browser, device, app: detectedApp } = parseUA(uaStr);
+    let { os, browser, device, app: detectedApp } = parseUA(uaStr);
+    if (req.query.device) device = req.query.device;
     console.log('UA:', uaStr, '→ Device:', device, 'OS:', os, 'Browser:', browser);
     const source = detectedApp !== 'Doğrudan / Bilinmiyor' ? detectedApp : (referrer || 'Doğrudan / Bilinmiyor');
     let geo = {};
