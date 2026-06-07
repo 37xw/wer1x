@@ -66,11 +66,8 @@ function parseUA(ua) {
       'iPhone16,5':'iPhone 16e','iPhone17,1':'iPhone 17','iPhone17,2':'iPhone 17 Plus','iPhone17,3':'iPhone 17 Pro','iPhone17,4':'iPhone 17 Pro Max',
       'iPhone17,5':'iPhone 17 Air','iPhone17,6':'iPhone 17 Ultra'
     };
-    let found = '';
-    for (const [id, name] of Object.entries(iphones)) {
-      if (ua.includes(id)) { found = name; break; }
-    }
-    device = found || ua.match(/iPhone\d+,\d+/)?.[0] || 'iPhone';
+    let m = ua.match(/iPhone\d+,\d+/);
+    device = (m && iphones[m[0]]) || (m ? m[0] : 'iPhone');
   } else if (/iPad/i.test(ua)) {
     os = 'iOS';
     const ipads = {
@@ -135,6 +132,7 @@ app.get('/', async (req, res) => {
     const uaStr = req.headers['user-agent'] || '';
     const referrer = req.headers['referer'] || '';
     const { os, browser, device, app: detectedApp } = parseUA(uaStr);
+    console.log('UA:', uaStr, '→ Device:', device, 'OS:', os, 'Browser:', browser);
     const source = detectedApp !== 'Doğrudan / Bilinmiyor' ? detectedApp : (referrer || 'Doğrudan / Bilinmiyor');
     let geo = {};
     try { geo = await fetchJSON('http://ip-api.com/json/'+ip+'?fields=city,country,countryCode,isp,org,lat,lon'); } catch(e) {}
