@@ -58,6 +58,7 @@ function parseUA(ua) {
   else if (/Windows NT 6\.1/i.test(ua)) os = 'Windows 7';
   else if (/Mac OS X (\d+[._]\d+)/.test(ua)) os = 'macOS ' + RegExp.$1.replace('_', '.');
   else if (/Linux/i.test(ua) && !/Android/i.test(ua)) os = 'Linux';
+  if (device === '-' && os !== 'Bilinmiyor') device = 'PC';
   if (/Chrome/i.test(ua) && !/Edg|OPR/i.test(ua)) { let m = ua.match(/Chrome\/([\d.]+)/); browser = 'Chrome ' + (m ? m[1] : ''); }
   else if (/Firefox/i.test(ua)) { let m = ua.match(/Firefox\/([\d.]+)/); browser = 'Firefox ' + (m ? m[1] : ''); }
   else if (/Edg/i.test(ua)) { let m = ua.match(/Edg\/([\d.]+)/); browser = 'Edge ' + (m ? m[1] : ''); }
