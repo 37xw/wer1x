@@ -1,7 +1,4 @@
 {
   "name": "wer1x",
-  "private": true,
-  "dependencies": {
-    "ua-parser-js": "^1.0.37"
-  }
+  "private": true
 }
