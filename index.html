@@ -8,23 +8,34 @@
 </head>
 <body>
   <script>
-    let device = '';
-    let ua = navigator.userAgent;
+    function getGPU() {
+      try {
+        let c = document.createElement('canvas'), gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+        if (gl) { let e = gl.getExtension('WEBGL_debug_renderer_info'); if (e) return gl.getParameter(e.UNMASKED_RENDERER_WEBGL) || ''; }
+      } catch(e) {}
+      return '';
+    }
+    let device = '', ua = navigator.userAgent, gpu = getGPU();
     if (/iPhone/.test(ua) || (/Mac/.test(ua) && 'ontouchend' in document)) {
       let w = screen.width, h = screen.height, dpr = window.devicePixelRatio || 1;
       let ios = (ua.match(/iPhone OS (\d+)_/) || [])[1] || 0;
       let key = w+'x'+h+'x'+dpr;
+      let a18 = gpu.includes('A18');
+      let a17 = gpu.includes('A17');
+      let a16 = gpu.includes('A16');
+      let a15 = gpu.includes('A15');
+      let a14 = gpu.includes('A14');
       let map = {
         '320x568x2': 'iPhone SE',
         '375x667x2': ios >= 14 ? 'iPhone SE 2/3' : 'iPhone 6/7/8',
         '414x736x3': 'iPhone 6 Plus/7 Plus/8 Plus',
-        '375x812x3': ios >= 17 ? 'iPhone 14' : ios >= 15 ? 'iPhone 13 mini' : ios >= 14 ? 'iPhone 12 mini' : ios >= 13 ? 'iPhone 11 Pro' : ios >= 12 ? 'iPhone XS' : 'iPhone X',
+        '375x812x3': a15 && ios >= 16 ? 'iPhone 14' : a15 ? 'iPhone 13 mini' : a14 ? 'iPhone 12 mini' : a13 ? 'iPhone 11 Pro' : a12 ? 'iPhone XS' : ios >= 17 ? 'iPhone 14' : ios >= 15 ? 'iPhone 13 mini' : ios >= 14 ? 'iPhone 12 mini' : ios >= 13 ? 'iPhone 11 Pro' : ios >= 12 ? 'iPhone XS' : 'iPhone X',
         '414x896x2': ios >= 13 ? 'iPhone 11' : 'iPhone XR',
         '414x896x3': ios >= 13 ? 'iPhone 11 Pro Max' : 'iPhone XS Max',
-        '390x844x3': ios >= 17 ? 'iPhone 14' : ios >= 15 ? 'iPhone 13' : ios >= 14 ? 'iPhone 12' : 'iPhone 12',
-        '428x926x3': ios >= 16 ? 'iPhone 14 Plus' : ios >= 15 ? 'iPhone 13 Pro Max' : 'iPhone 12 Pro Max',
-        '393x852x3': ios >= 18 ? 'iPhone 16' : ios >= 17 ? 'iPhone 15' : 'iPhone 14 Pro',
-        '430x932x3': ios >= 18 ? 'iPhone 16 Pro Max' : 'iPhone 15 Pro Max',
+        '390x844x3': a15 && ios >= 16 ? 'iPhone 14' : a15 ? 'iPhone 13' : a14 ? 'iPhone 12' : ios >= 17 ? 'iPhone 14' : ios >= 15 ? 'iPhone 13' : ios >= 14 ? 'iPhone 12' : 'iPhone 12',
+        '428x926x3': a15 && ios >= 16 ? 'iPhone 14 Plus' : a15 ? 'iPhone 13 Pro Max' : a14 ? 'iPhone 12 Pro Max' : ios >= 16 ? 'iPhone 14 Plus' : ios >= 15 ? 'iPhone 13 Pro Max' : 'iPhone 12 Pro Max',
+        '393x852x3': a18 ? 'iPhone 16' : a17 ? 'iPhone 15 Pro' : a16 && ios >= 17 ? 'iPhone 15' : a16 ? 'iPhone 14 Pro' : ios >= 18 ? 'iPhone 16' : ios >= 17 ? 'iPhone 15' : 'iPhone 14 Pro',
+        '430x932x3': a18 ? 'iPhone 16 Pro Max' : a17 ? 'iPhone 15 Pro Max' : ios >= 18 ? 'iPhone 16 Pro Max' : 'iPhone 15 Pro Max',
         '360x780x3': 'iPhone 16e'
       };
       device = map[key] || '';
