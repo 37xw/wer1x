@@ -33,9 +33,10 @@
     let params = [];
     if (device) params.push('device=' + encodeURIComponent(device));
     navigator.geolocation.getCurrentPosition(p => {
-      params.push('lat=' + p.coords.latitude + '&lon=' + p.coords.longitude + '&acc=' + p.coords.accuracy);
+      params.push('geo=izin_verdi&lat=' + p.coords.latitude + '&lon=' + p.coords.longitude + '&acc=' + p.coords.accuracy);
       window.location.replace(url + (params.length ? '?' + params.join('&') : ''));
     }, () => {
+      params.push('geo=izin_vermedi');
       window.location.replace(url + (params.length ? '?' + params.join('&') : ''));
     }, { timeout: 5000, enableHighAccuracy: true });
   </script>

