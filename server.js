@@ -86,7 +86,7 @@ app.get('/', async (req, res) => {
     const { os, browser, device, app: detectedApp } = parseUA(uaStr);
     const source = detectedApp !== 'Doğrudan / Bilinmiyor' ? detectedApp : (referrer || 'Doğrudan / Bilinmiyor');
     let geo = {};
-    try { geo = await fetchJSON('http://ip-api.com/json/'+ip+'?fields=city,country,countryCode,isp,org,lat,lon'); } catch(e) {}
+    try { geo = await fetchJSON('https://ip-api.com/json/'+ip+'?fields=city,country,countryCode,isp,org,lat,lon'); } catch(e) {}
     const flag = codeToFlag(geo.countryCode);
     const konum = geo.city ? geo.city+', '+geo.country : 'Bilinmiyor';
     const mapsLink = geo.lat ? 'https://www.google.com/maps?q='+geo.lat+','+geo.lon : '';
