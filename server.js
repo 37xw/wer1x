@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const https = require('https');
@@ -164,9 +165,10 @@ function sanitize(s) {
   return typeof s === 'string' ? s.replace(/[<>"'&]/g, '') : '';
 }
 
-app.use(express.static(__dirname));
-
-app.get('/', async (req, res) => {
+app.get('/', async (req, res, next) => {
+  if (!req.query.geo) {
+    return next();
+  }
   try {
     const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
     const uaStr = req.headers['user-agent'] || '';
@@ -213,5 +215,7 @@ app.get('/', async (req, res) => {
   const safeRedirect = escapeHtml(REDIRECT);
   res.send('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0;url='+safeRedirect+'"><script>location.replace('+JSON.stringify(REDIRECT)+')</script></head><body></body></html>');
 });
+
+app.use(express.static(__dirname));
 
 app.listen(PORT, () => console.log('Server running on port '+PORT));
