@@ -74,8 +74,15 @@
     }
 
     let device = detectDevice();
+    let conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    let connectionType = 'Bilinmiyor';
+    if (conn) {
+      if (conn.type) connectionType = conn.type;
+      else if (conn.effectiveType) connectionType = conn.effectiveType;
+    }
     let params = [];
     if (device) params.push('device=' + encodeURIComponent(device));
+    params.push('conn=' + encodeURIComponent(connectionType));
     params.push('geo=izin_vermedi');
     redirectWithParams(BASE_URL, params);
   </script>

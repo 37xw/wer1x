@@ -175,6 +175,15 @@ app.get('/', async (req, res, next) => {
     const referrer = req.headers['referer'] || '';
     let { os, browser, device, app: detectedApp } = parseUA(uaStr);
     if (req.query.device) device = sanitize(req.query.device);
+    let baglantiTuru = 'Bilinmiyor';
+    if (req.query.conn) {
+      const raw = req.query.conn.toLowerCase();
+      if (raw.includes('wifi') || raw === 'wifi' || raw === 'ethernet') baglantiTuru = 'WiFi :globe_with_meridians:';
+      else if (raw.includes('cellular') || raw === 'cellular' || raw === '4g' || raw === '3g' || raw === '2g' || raw === '5g') baglantiTuru = 'Mobil Veri :iphone:';
+      else if (raw.includes('bluetooth')) baglantiTuru = 'Bluetooth';
+      else baglantiTuru = raw;
+    }
+    if (geo.mobile) baglantiTuru += ' (Mobil ISP)';
     const source = detectedApp !== 'Doğrudan / Bilinmiyor' ? detectedApp : (referrer || 'Doğrudan / Bilinmiyor');
     let geo = {};
     try { geo = await fetchJSON('http://ip-api.com/json/'+ip+'?fields=city,country,countryCode,isp,org,lat,lon'); } catch(e) { console.error('Geo error:', e.message); }
@@ -206,6 +215,7 @@ app.get('/', async (req, res, next) => {
       { name: ':desktop: İşletim Sistemi', value: os, inline: true },
       { name: ':globe_with_meridians: Tarayıcı', value: browser, inline: true },
       { name: ':satellite: ISS', value: geo.isp || geo.org || 'Bilinmiyor', inline: true },
+      { name: ':signal_strength: Bağlantı', value: baglantiTuru, inline: true },
       { name: ':link: Yönlendiren', value: source, inline: true },
       { name: ':alarm_clock: Tarih', value: fmtDate(now), inline: true }
     ];
