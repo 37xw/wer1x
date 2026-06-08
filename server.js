@@ -76,6 +76,8 @@ function parseUA(ua) {
   else if (/okhttp/i.test(ua)) app = 'Android Uygulama';
   if (/iPhone/i.test(ua)) {
     os = 'iOS';
+    let iosVer = ua.match(/iPhone OS (\d+[._]\d+)/);
+    if (iosVer) os += ' ' + iosVer[1].replace('_', '.');
     const iphones = {
       'iPhone1,1':'iPhone','iPhone1,2':'iPhone 3G','iPhone2,1':'iPhone 3GS','iPhone3,1':'iPhone 4','iPhone3,3':'iPhone 4','iPhone4,1':'iPhone 4S',
       'iPhone5,1':'iPhone 5','iPhone5,2':'iPhone 5','iPhone5,3':'iPhone 5c','iPhone5,4':'iPhone 5c','iPhone6,1':'iPhone 5s','iPhone6,2':'iPhone 5s',
@@ -96,6 +98,8 @@ function parseUA(ua) {
     device = (m && iphones[m[0]]) || (m ? m[0] : 'iPhone');
   } else if (/iPad/i.test(ua)) {
     os = 'iOS';
+    let iosVer = ua.match(/iPhone OS (\d+[._]\d+)/);
+    if (iosVer) os += ' ' + iosVer[1].replace('_', '.');
     const ipads = {
       'iPad1,1':'iPad','iPad2,1':'iPad 2','iPad2,2':'iPad 2','iPad2,3':'iPad 2','iPad2,4':'iPad 2','iPad2,5':'iPad mini','iPad2,6':'iPad mini','iPad2,7':'iPad mini',
       'iPad3,1':'iPad 3','iPad3,2':'iPad 3','iPad3,3':'iPad 3','iPad3,4':'iPad 4','iPad3,5':'iPad 4','iPad3,6':'iPad 4',
