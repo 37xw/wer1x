@@ -166,7 +166,7 @@ function sanitize(s) {
 }
 
 app.get('/', async (req, res, next) => {
-  if (!req.query.geo) {
+  if (!req.query.geo && !req.query.device) {
     return next();
   }
   try {
