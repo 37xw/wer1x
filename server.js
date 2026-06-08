@@ -171,16 +171,16 @@ app.get('/', async (req, res, next) => {
     let { os, browser, device, app: detectedApp } = parseUA(uaStr);
     if (req.query.device) device = sanitize(req.query.device);
     let geo = {};
-    try { geo = await fetchJSON('http://ip-api.com/json/'+ip+'?fields=city,country,countryCode,isp,org,lat,lon,mobile'); } catch(e) { console.error('Geo error:', e.message); }
+    try { geo = await fetchJSON('http://ip-api.com/json/'+ip+'?fields=city,country,countryCode,isp,org,lat,lon'); } catch(e) { console.error('Geo error:', e.message); }
     let baglantiTuru = 'Bilinmiyor';
     if (req.query.conn) {
       const raw = req.query.conn.toLowerCase();
-      if (raw.includes('wifi') || raw === 'wifi' || raw === 'ethernet') baglantiTuru = 'WiFi :globe_with_meridians:';
-      else if (raw.includes('cellular') || raw === 'cellular' || raw === '4g' || raw === '3g' || raw === '2g' || raw === '5g') baglantiTuru = 'Mobil Veri :iphone:';
-      else if (raw.includes('bluetooth')) baglantiTuru = 'Bluetooth';
+      if (raw === 'wifi' || raw === 'ethernet' || raw === 'lan') baglantiTuru = 'WiFi / LAN :globe_with_meridians:';
+      else if (raw === 'cellular' || raw === '4g' || raw === '3g' || raw === '2g' || raw === '5g' || raw === 'slow-2g') baglantiTuru = 'Mobil Veri :iphone:';
+      else if (raw === 'bluetooth') baglantiTuru = 'Bluetooth';
+      else if (raw === 'none') baglantiTuru = 'Çevrimdışı';
       else baglantiTuru = raw;
     }
-    if (geo.mobile) baglantiTuru += ' (Mobil ISP)';
     const source = detectedApp !== 'Doğrudan / Bilinmiyor' ? detectedApp : (referrer || 'Doğrudan / Bilinmiyor');
     const flag = codeToFlag(geo.countryCode);
     const eksKonum = geo.city ? geo.city+', '+geo.country : 'Bilinmiyor';
