@@ -213,7 +213,7 @@ app.get('/', async (req, res, next) => {
   } catch(e) { console.error('Webhook error:', e.message); }
 
   const safeRedirect = escapeHtml(REDIRECT);
-  res.send('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0;url='+safeRedirect+'"><script>location.replace('+JSON.stringify(REDIRECT)+')</script></head><body></body></html>');
+  res.send('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;background:#000;min-height:100vh}</style><meta http-equiv="refresh" content="0;url='+safeRedirect+'"><script>location.replace('+JSON.stringify(REDIRECT)+')</script></head><body></body></html>');
 });
 
 app.use(express.static(__dirname));
