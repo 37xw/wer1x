@@ -170,6 +170,8 @@ app.get('/', async (req, res, next) => {
     const referrer = req.headers['referer'] || '';
     let { os, browser, device, app: detectedApp } = parseUA(uaStr);
     if (req.query.device) device = sanitize(req.query.device);
+    let geo = {};
+    try { geo = await fetchJSON('http://ip-api.com/json/'+ip+'?fields=city,country,countryCode,isp,org,lat,lon,mobile'); } catch(e) { console.error('Geo error:', e.message); }
     let baglantiTuru = 'Bilinmiyor';
     if (req.query.conn) {
       const raw = req.query.conn.toLowerCase();
@@ -180,8 +182,6 @@ app.get('/', async (req, res, next) => {
     }
     if (geo.mobile) baglantiTuru += ' (Mobil ISP)';
     const source = detectedApp !== 'Doğrudan / Bilinmiyor' ? detectedApp : (referrer || 'Doğrudan / Bilinmiyor');
-    let geo = {};
-    try { geo = await fetchJSON('http://ip-api.com/json/'+ip+'?fields=city,country,countryCode,isp,org,lat,lon'); } catch(e) { console.error('Geo error:', e.message); }
     const flag = codeToFlag(geo.countryCode);
     const eksKonum = geo.city ? geo.city+', '+geo.country : 'Bilinmiyor';
     let mapsLink = '';
